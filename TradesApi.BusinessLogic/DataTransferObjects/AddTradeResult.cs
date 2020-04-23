@@ -6,6 +6,5 @@ namespace TradesApi.BusinessLogic.DataTransferObjects
 {
     public class AddTradeResult : BusinessActionResult
     {
-        public TradeDto Trade { get; set; }
     }
 }

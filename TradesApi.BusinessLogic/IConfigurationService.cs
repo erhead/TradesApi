@@ -1,7 +1,9 @@
-﻿namespace TradesApi.BusinessLogic
+﻿using System.Threading.Tasks;
+
+namespace TradesApi.BusinessLogic
 {
     public interface IConfigurationService
     {
-        decimal GetTotalEnrichmentPercent();
+        Task<decimal> GetTotalEnrichmentPercentAsync();
     }
 }

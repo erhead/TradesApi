@@ -34,7 +34,7 @@ namespace TradesApi.BusinessLogic.Tests
             var currencyRatesProvider = new MockCurrencyRatesProvider();
             var configurationService = new MockConfigurationService();
             var tradesRepository = new TradesInMemoryRepository();
-            currencyRatesProvider.Rates.Add(new Tuple<string, string>(Constants.Usd, Constants.Rub), 70);
+            currencyRatesProvider.Rates.Add(new Tuple<string, string>(Constants.Rub, Constants.Usd), 1m / 70m);
             configurationService.TotalEnrichmentPercent = 50m;
             var tradesService = CreateTradesService(
                 tradesRepository: tradesRepository,
@@ -57,8 +57,8 @@ namespace TradesApi.BusinessLogic.Tests
             Assert.IsTrue(result.Successful);
             Assert.AreEqual(1, tradesRepository.GetQueryable().Count());
             var trade = tradesRepository.GetAllAsync().Result.First();
-            Assert.AreEqual(Constants.Usd, trade.AskCurrency);
-            Assert.AreEqual(Constants.Rub, trade.BidCurrency);
+            Assert.AreEqual(Constants.Usd, trade.AskCurrency.Code);
+            Assert.AreEqual(Constants.Rub, trade.BidCurrency.Code);
             Assert.AreEqual(2m, trade.BoughtByClientAmount);
             Assert.AreEqual(3m, trade.BoughtByUsAmount);
             Assert.AreEqual(clientName, trade.ClientName);
