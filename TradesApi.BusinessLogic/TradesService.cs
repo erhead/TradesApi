@@ -106,9 +106,47 @@ namespace TradesApi.BusinessLogic
             throw new NotImplementedException();
         }
 
-        public Task<GetTradeResult> GetTradeAsync(GetTradeParameters parameters)
+        public async Task<GetTradeResult> GetTradeAsync(GetTradeParameters parameters)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var tradeModel = await _tradesRepository.GetAsync(parameters.TradeId);
+                if (tradeModel == null)
+                {
+                    string message = "An invalid trade ID specified";
+                    _logger.LogError(message, null);
+                    return new GetTradeResult
+                    {
+                        Successful = false,
+                        ErrorMessage = message
+                    };
+                }
+                return new GetTradeResult
+                {
+                    Successful = true,
+                    Trade = new TradeDto
+                    {
+                        Id = tradeModel.Id,
+                        AskCurrencyCode = tradeModel.AskCurrency.Code,
+                        BidCurrencyCode = tradeModel.BidCurrency.Code,
+                        SoldAmount = tradeModel.SoldAmount,
+                        BoughtAmount = tradeModel.BoughtByClientAmount,
+                        BrokerRate = tradeModel.BoughtByUsAmount / tradeModel.SoldAmount,
+                        ClientRate = tradeModel.BoughtByClientAmount / tradeModel.SoldAmount,
+                        ClientName = tradeModel.ClientName,
+                        Time = tradeModel.Time
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e.StackTrace);
+                return new GetTradeResult
+                {
+                    Successful = false,
+                    ErrorMessage = e.Message
+                };
+            }
         }
 
         public Task<GetTradesListResult> GetTradesListAsync(GetTradesListParameters parameters)
