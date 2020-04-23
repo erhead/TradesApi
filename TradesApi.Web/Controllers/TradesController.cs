@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using TradesApi.BusinessLogic;
@@ -55,6 +56,39 @@ namespace TradesApi.Web.Controllers
             if (result.Successful)
             {
                 return new EmptyResult();
+            }
+            else
+            {
+                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                return new JsonResult(new ErrorViewModel { Message = result.ErrorMessage });
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetList(int skip = 0, int take = 0)
+        {
+            var result = await _tradesService.GetTradesListAsync(
+                new GetTradesListParameters { Skip = skip, Take = take });
+            if (result.Successful)
+            {
+                return new JsonResult(result.Trades);
+            }
+            else
+            {
+                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                return new JsonResult(new ErrorViewModel { Message = result.ErrorMessage });
+            }
+        }
+
+        [HttpGet]
+        [Route("gpb-profit-report")]
+        public async Task<ActionResult> GetProfitInGpbReport(DateTime startDate, DateTime endDate)
+        {
+            var result = await _tradesService.GetProfitInGbpAsync(
+                new GetProfitInGbpReportParameters { StartDate = startDate, EndDate = endDate });
+            if (result.Successful)
+            {
+                return new JsonResult(result.ProfitData.Select(x => new ProfitInGbpReportViewModel(x)));
             }
             else
             {

@@ -207,7 +207,7 @@ namespace TradesApi.BusinessLogic
         {
             try
             {
-                if (parameters.Skip < 0 || parameters.Take <= 0)
+                if (parameters.Skip < 0 || parameters.Take < 0)
                 {
                     string message = "TradesService: invalid skip/take parameters specified";
                     _logger.LogError(message, null);
@@ -220,8 +220,11 @@ namespace TradesApi.BusinessLogic
                 var tradeModels = _tradesRepository
                     .GetQueryable()
                     .OrderBy(x => x.Id)
-                    .Skip(parameters.Skip)
-                    .Take(parameters.Take);
+                    .Skip(parameters.Skip);
+                if (parameters.Take > 0)
+                {
+                    tradeModels = tradeModels.Take(parameters.Take);
+                }
                 List<Trade> tradesList = await GetListFromIQueryableAsync(tradeModels);
                 return new GetTradesListResult
                 {
