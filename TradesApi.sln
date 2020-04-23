@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradesApi.Data", "TradesApi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradesApi.BusinessLogic", "TradesApi.BusinessLogic\TradesApi.BusinessLogic.csproj", "{FCEEFD88-8BC9-4F70-B8CB-E38AE9487F25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradesApi.BusinessLogic.Tests", "TradesApi.BusinessLogic.Tests\TradesApi.BusinessLogic.Tests.csproj", "{ADC21BDB-3E06-495E-97A8-93E05E94C6D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradesApi.BusinessLogic.Tests", "TradesApi.BusinessLogic.Tests\TradesApi.BusinessLogic.Tests.csproj", "{ADC21BDB-3E06-495E-97A8-93E05E94C6D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradesApi.Data.InMemory", "TradesApi.Data.InMemory\TradesApi.Data.InMemory.csproj", "{974FD323-ABF3-44CF-A568-31B57D59C35E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradesApi.Data.InMemory", "TradesApi.Data.InMemory\TradesApi.Data.InMemory.csproj", "{974FD323-ABF3-44CF-A568-31B57D59C35E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradesApi.Web", "TradesApi.Web\TradesApi.Web.csproj", "{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{974FD323-ABF3-44CF-A568-31B57D59C35E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{974FD323-ABF3-44CF-A568-31B57D59C35E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{974FD323-ABF3-44CF-A568-31B57D59C35E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
