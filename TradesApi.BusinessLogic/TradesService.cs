@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TradesApi.BusinessLogic.DataTransferObjects;
@@ -57,7 +59,7 @@ namespace TradesApi.BusinessLogic
 
                 if (askCurrency == null || bidCurrency == null)
                 {
-                    string message = "An incorrect currency code specified";
+                    string message = "TradesService: An incorrect currency code specified";
                     _logger.LogError($"TradesService: {message}", null);
                     return new AddTradeResult
                     {
@@ -113,7 +115,7 @@ namespace TradesApi.BusinessLogic
                 var tradeModel = await _tradesRepository.GetAsync(parameters.TradeId);
                 if (tradeModel == null)
                 {
-                    string message = "An invalid trade ID specified";
+                    string message = "TradesService: An invalid trade ID specified";
                     _logger.LogError(message, null);
                     return new GetTradeResult
                     {
@@ -124,18 +126,7 @@ namespace TradesApi.BusinessLogic
                 return new GetTradeResult
                 {
                     Successful = true,
-                    Trade = new TradeDto
-                    {
-                        Id = tradeModel.Id,
-                        AskCurrencyCode = tradeModel.AskCurrency.Code,
-                        BidCurrencyCode = tradeModel.BidCurrency.Code,
-                        SoldAmount = tradeModel.SoldAmount,
-                        BoughtAmount = tradeModel.BoughtByClientAmount,
-                        BrokerRate = tradeModel.BoughtByUsAmount / tradeModel.SoldAmount,
-                        ClientRate = tradeModel.BoughtByClientAmount / tradeModel.SoldAmount,
-                        ClientName = tradeModel.ClientName,
-                        Time = tradeModel.Time
-                    }
+                    Trade = new TradeDto(tradeModel)
                 };
             }
             catch (Exception e)
@@ -149,9 +140,49 @@ namespace TradesApi.BusinessLogic
             }
         }
 
-        public Task<GetTradesListResult> GetTradesListAsync(GetTradesListParameters parameters)
+        public async Task<GetTradesListResult> GetTradesListAsync(GetTradesListParameters parameters)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (parameters.Skip < 0 || parameters.Take <= 0)
+                {
+                    string message = "TradesService: invalid skip/take parameters specified";
+                    _logger.LogError(message, null);
+                    return new GetTradesListResult
+                    {
+                        Successful = false,
+                        ErrorMessage = message
+                    };
+                }
+                var tradeModels = _tradesRepository
+                    .GetQueryable()
+                    .OrderBy(x => x.Id)
+                    .Skip(parameters.Skip)
+                    .Take(parameters.Take);
+                List<Trade> tradesList;
+                if (tradeModels is IAsyncEnumerable<Trade>)
+                {
+                    tradesList = await tradeModels.ToListAsync();
+                }
+                else
+                {
+                    tradesList = tradeModels.ToList();
+                }
+                return new GetTradesListResult
+                {
+                    Successful = true,
+                    Trades = tradesList.Select(x => new TradeDto(x)).ToList()
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e.StackTrace);
+                return new GetTradesListResult
+                {
+                    Successful = false,
+                    ErrorMessage = e.Message
+                };
+            }
         }
     }
 }
