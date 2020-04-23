@@ -11,6 +11,8 @@ namespace TradesApi.BusinessLogic
 {
     public class TradesService : ITradesService
     {
+        private const string GbpCode = "GBP";
+
         private ILogger _logger;
 
         private IRepository<Currency> _currencyRepository;
@@ -20,6 +22,18 @@ namespace TradesApi.BusinessLogic
         private IConfigurationService _configurationService;
 
         private ICurrencyRatesProvider _currencyRatesProvider;
+
+        private async Task<List<T>> GetListFromIQueryableAsync<T>(IQueryable<T> queryable)
+        {
+            if (queryable is IAsyncEnumerable<T>)
+            {
+                return await queryable.ToListAsync();
+            }
+            else
+            {
+                return queryable.ToList();
+            }
+        }
 
         public TradesService(
             ILogger logger,
@@ -103,9 +117,58 @@ namespace TradesApi.BusinessLogic
             }
         }
 
-        public Task<GetProfitInGbpReportResult> GetProfitInGbpAsync(GetProfitInGbpReportParameters parameters)
+        public async Task<GetProfitInGbpReportResult> GetProfitInGbpAsync(GetProfitInGbpReportParameters parameters)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Make sure to use dates only.
+                var startDate = new DateTime(
+                    parameters.StartDate.Year,
+                    parameters.StartDate.Month,
+                    parameters.StartDate.Day);
+                var endDate = new DateTime(
+                    parameters.EndDate.Year,
+                    parameters.EndDate.Month,
+                    parameters.EndDate.Day, 23, 59, 59, 999);
+                var tradeModels = await _tradesRepository.FindAsync(
+                    x => x.Time >= startDate && x.Time <= endDate);
+                var profits = new Dictionary<DateTime, decimal>();
+                var c = startDate;
+                while (c <= endDate)
+                {
+                    profits.Add(c, 0m);
+                    c = c.AddDays(1);
+                }
+                foreach (var trade in tradeModels)
+                {
+                    // Disregard time.
+                    var date = new DateTime(trade.Time.Year, trade.Time.Month, trade.Time.Day);
+                    if (!profits.ContainsKey(date))
+                    {
+                        profits.Add(date, 0m);
+                    }
+
+                    var rate = await _currencyRatesProvider.GetRateAsync(trade.AskCurrency.Code, GbpCode, date);
+                    profits[date] = profits[date] + (trade.BoughtByUsAmount - trade.BoughtByClientAmount) * rate;
+                }
+                return new GetProfitInGbpReportResult
+                {
+                    Successful = true,
+                    ProfitData = profits
+                        .Select(x => new DayProfitInGbpInfo { Date = x.Key, Sum = x.Value })
+                        .OrderBy(x => x.Date)
+                        .ToList()
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e.StackTrace);
+                return new GetProfitInGbpReportResult
+                {
+                    Successful = false,
+                    ErrorMessage = e.Message
+                };
+            }
         }
 
         public async Task<GetTradeResult> GetTradeAsync(GetTradeParameters parameters)
@@ -159,15 +222,7 @@ namespace TradesApi.BusinessLogic
                     .OrderBy(x => x.Id)
                     .Skip(parameters.Skip)
                     .Take(parameters.Take);
-                List<Trade> tradesList;
-                if (tradeModels is IAsyncEnumerable<Trade>)
-                {
-                    tradesList = await tradeModels.ToListAsync();
-                }
-                else
-                {
-                    tradesList = tradeModels.ToList();
-                }
+                List<Trade> tradesList = await GetListFromIQueryableAsync(tradeModels);
                 return new GetTradesListResult
                 {
                     Successful = true,
