@@ -12,6 +12,7 @@
     <ProjectReference Include="..\TradesApi.BusinessLogic\TradesApi.BusinessLogic.csproj" />
     <ProjectReference Include="..\TradesApi.Data.InMemory\TradesApi.Data.InMemory.csproj" />
     <ProjectReference Include="..\TradesApi.Data\TradesApi.Data.csproj" />
+    <ProjectReference Include="..\TradesApi.OpenExchangeRates\TradesApi.OpenExchangeRates.csproj" />
   </ItemGroup>
 
 

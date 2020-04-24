@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradesApi.Data.InMemory", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradesApi.Web", "TradesApi.Web\TradesApi.Web.csproj", "{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradesApi.OpenExchangeRates", "TradesApi.OpenExchangeRates\TradesApi.OpenExchangeRates.csproj", "{344A670E-1154-4495-9BC8-BD948AC40D8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4EA1937-77FE-48E3-A1A9-19C3E579DCB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{344A670E-1154-4495-9BC8-BD948AC40D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{344A670E-1154-4495-9BC8-BD948AC40D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{344A670E-1154-4495-9BC8-BD948AC40D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{344A670E-1154-4495-9BC8-BD948AC40D8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

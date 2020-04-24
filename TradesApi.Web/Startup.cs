@@ -4,10 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using System.Net.Http;
 using TradesApi.BusinessLogic;
 using TradesApi.Data;
 using TradesApi.Data.InMemory;
 using TradesApi.Data.Model;
+using TradesApi.OpenExchangeRates;
 
 namespace TradesApi.Web
 {
@@ -29,12 +31,16 @@ namespace TradesApi.Web
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Trades API", Version = "v1" });
             });
 
-            //services.AddTransient<TradesApi.Data.ILogger>(sp => new Logger(sp.GetService<Microsoft.Extensions.Logging.ILogger>()));
+            services.AddHttpClient();
             services.AddSingleton<ILogger, StubLogger>();
             services.AddSingleton<IRepository<Currency>>(new CurrencyInMemoryRepository());
             services.AddSingleton<IRepository<Trade>>(new TradesInMemoryRepository());
             services.AddSingleton<IConfigurationService>(new StaticConfigurationService());
-            services.AddSingleton<ICurrencyRatesProvider>(new StaticCurrencyRatesProvider());
+            services.AddScoped<ICurrencyRatesProvider>(sp =>
+            {
+                var factory = sp.GetRequiredService<IHttpClientFactory>();
+                return new OxrCurrencyRatesProvider(factory.CreateClient(), "aee797343e7942fba89a93943bc91188");
+            });
             services.AddScoped<ITradesService, TradesService>();
         }
 
