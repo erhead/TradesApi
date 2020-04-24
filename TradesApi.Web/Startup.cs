@@ -33,7 +33,11 @@ namespace TradesApi.Web
             });
 
             services.AddHttpClient();
-            services.AddSingleton<IRepository<Currency>>(new CurrencyInMemoryRepository());
+            services.AddSingleton<IRepository<Currency>>(sp =>
+            {
+                var factory = sp.GetRequiredService<IHttpClientFactory>();
+                return new OxrCurrencyRepository(factory.CreateClient());
+            });
             services.AddSingleton<IRepository<Trade>>(new TradesInMemoryRepository());
             services.AddSingleton<IConfigurationService>(new StaticConfigurationService());
             services.AddScoped<ICurrencyRatesProvider>(sp =>
