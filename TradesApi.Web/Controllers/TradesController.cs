@@ -14,15 +14,11 @@ namespace TradesApi.Web.Controllers
     [Route("[controller]")]
     public class TradesController : ControllerBase
     {
-        private readonly TradesApi.Data.ILogger _logger;
-
         private readonly ITradesService _tradesService;
 
         public TradesController(
-            ILogger<TradesController> logger,
             ITradesService tradesService)
         {
-            _logger = new Logger(logger);
             _tradesService = tradesService;
         }
 
@@ -30,70 +26,88 @@ namespace TradesApi.Web.Controllers
         [Route("{id}")]
         public async Task<ActionResult> Get(int id)
         {
-            var result = await _tradesService.GetTradeAsync(new GetTradeParameters { TradeId = id });
-            if (result.Successful)
+            try
             {
-                return new JsonResult(new TradeViewModel(result.Trade));
+                var result = await _tradesService.GetTradeAsync(id);
+                return new JsonResult(new TradeViewModel(result));
             }
-            else
+            catch (ObjectNotFoundException e)
             {
-                Response.StatusCode = StatusCodes.Status500InternalServerError;
-                return new JsonResult(new ErrorViewModel { Message = result.ErrorMessage });
+                Response.StatusCode = StatusCodes.Status404NotFound;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
+            }
+            catch (IncorrectParametersException e)
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = 500;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
             }
         }
 
         [HttpPost]
         public async Task<ActionResult> Post(AddTradeParametersViewModel parameters)
         {
-            var result = await _tradesService.AddTradeAsync(new AddTradeParameters
+            try
             {
-                AskCurrencyCode = parameters.AskCurrencyCode,
-                BidCurrencyCode = parameters.BidCurrencyCode,
-                ClientName = parameters.ClientName,
-                SoldAmount = parameters.SoldAmount,
-                Time = parameters.Time
-            });
-            if (result.Successful)
-            {
+                await _tradesService.AddTradeAsync(new AddTradeParameters
+                {
+                    AskCurrencyCode = parameters.AskCurrencyCode,
+                    BidCurrencyCode = parameters.BidCurrencyCode,
+                    ClientName = parameters.ClientName,
+                    SoldAmount = parameters.SoldAmount,
+                    Time = parameters.Time
+                });
                 return new EmptyResult();
             }
-            else
+            catch (IncorrectParametersException e)
             {
-                Response.StatusCode = StatusCodes.Status500InternalServerError;
-                return new JsonResult(new ErrorViewModel { Message = result.ErrorMessage });
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = 500;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
             }
         }
 
         [HttpGet]
         public async Task<ActionResult> GetList(int skip = 0, int take = 0)
         {
-            var result = await _tradesService.GetTradesListAsync(
-                new GetTradesListParameters { Skip = skip, Take = take });
-            if (result.Successful)
+            try
             {
-                return new JsonResult(result.Trades);
+                var result = await _tradesService.GetTradesListAsync(skip, take);
+                return new JsonResult(result);
             }
-            else
+            catch (IncorrectParametersException e)
             {
-                Response.StatusCode = StatusCodes.Status500InternalServerError;
-                return new JsonResult(new ErrorViewModel { Message = result.ErrorMessage });
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = 500;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
             }
         }
 
         [HttpGet]
-        [Route("gpb-profit-report")]
+        [Route("GbpProfitReport")]
         public async Task<ActionResult> GetProfitInGpbReport(DateTime startDate, DateTime endDate)
         {
-            var result = await _tradesService.GetProfitInGbpAsync(
-                new GetProfitInGbpReportParameters { StartDate = startDate, EndDate = endDate });
-            if (result.Successful)
+            try
             {
-                return new JsonResult(result.ProfitData.Select(x => new ProfitInGbpReportViewModel(x)));
+                var result = await _tradesService.GetProfitInGbpAsync(startDate, endDate);
+                return new JsonResult(result.Select(x => new ProfitInGbpReportViewModel(x)));
             }
-            else
+            catch (Exception e)
             {
-                Response.StatusCode = StatusCodes.Status500InternalServerError;
-                return new JsonResult(new ErrorViewModel { Message = result.ErrorMessage });
+                Response.StatusCode = 500;
+                return new JsonResult(new ErrorViewModel { Message = e.Message });
             }
         }
     }

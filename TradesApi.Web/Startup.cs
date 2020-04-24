@@ -32,7 +32,6 @@ namespace TradesApi.Web
             });
 
             services.AddHttpClient();
-            services.AddSingleton<ILogger, StubLogger>();
             services.AddSingleton<IRepository<Currency>>(new CurrencyInMemoryRepository());
             services.AddSingleton<IRepository<Trade>>(new TradesInMemoryRepository());
             services.AddSingleton<IConfigurationService>(new StaticConfigurationService());

@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TradesApi.BusinessLogic.DataTransferObjects;
 using TradesApi.Data;
 using TradesApi.Data.InMemory;
@@ -13,18 +14,16 @@ namespace TradesApi.BusinessLogic.Tests
     public class TradesServiceTests
     {
         private TradesService CreateTradesService(
-            ILogger logger = null,
             IRepository<Currency> currencyRepository = null,
             IRepository<Trade> tradesRepository = null,
             ICurrencyRatesProvider currencyRatesProvider = null,
             IConfigurationService configurationService = null)
         {
-            logger = logger ?? new FakeLogger();
             currencyRepository = currencyRepository ?? new CurrencyInMemoryRepository();
             tradesRepository = tradesRepository ?? new TradesInMemoryRepository();
             currencyRatesProvider = currencyRatesProvider ?? new MockCurrencyRatesProvider();
             configurationService = configurationService ?? new MockConfigurationService();
-            return new TradesService(logger, currencyRepository, tradesRepository, configurationService, currencyRatesProvider);
+            return new TradesService(currencyRepository, tradesRepository, configurationService, currencyRatesProvider);
         }
 
         [TestMethod]
@@ -51,10 +50,9 @@ namespace TradesApi.BusinessLogic.Tests
                 Time = DateTime.Now,
                 ClientName = clientName
             };
-            var result = tradesService.AddTradeAsync(parameters).Result;
+            tradesService.AddTradeAsync(parameters).Wait();
 
             // Assert.
-            Assert.IsTrue(result.Successful);
             Assert.AreEqual(1, tradesRepository.GetQueryable().Count());
             var trade = tradesRepository.GetAllAsync().Result.First();
             Assert.AreEqual(Constants.Usd, trade.AskCurrency.Code);
@@ -79,10 +77,10 @@ namespace TradesApi.BusinessLogic.Tests
                 Time = DateTime.Now,
                 ClientName = "TestClient"
             };
-            var result = tradesService.AddTradeAsync(parameters).Result;
+            Func<Task> action = () => tradesService.AddTradeAsync(parameters);
 
             // Assert.
-            Assert.IsFalse(result.Successful);
+            Assert.ThrowsExceptionAsync<IncorrectParametersException>(action).Wait();
         }
 
         [TestMethod]
@@ -115,19 +113,18 @@ namespace TradesApi.BusinessLogic.Tests
             var tradesService = CreateTradesService(tradesRepository: tradesRepository);
 
             // Act.
-            var result = tradesService.GetTradeAsync(new GetTradeParameters { TradeId = tradeId }).Result;
+            var result = tradesService.GetTradeAsync(tradeId).Result;
 
             // Assert.
-            Assert.IsTrue(result.Successful);
-            Assert.AreEqual(tradeId, result.Trade.Id);
-            Assert.AreEqual(askCurrency.Code, result.Trade.AskCurrencyCode);
-            Assert.AreEqual(bidCurrency.Code, result.Trade.BidCurrencyCode);
-            Assert.AreEqual(soldAmount, result.Trade.SoldAmount);
-            Assert.AreEqual(boughtByClientAmount, result.Trade.BoughtAmount);
-            Assert.AreEqual(boughtByClientAmount / soldAmount, result.Trade.ClientRate);
-            Assert.AreEqual(boughtByUsAmount / soldAmount, result.Trade.BrokerRate);
-            Assert.AreEqual(time, result.Trade.Time);
-            Assert.AreEqual(clientName, result.Trade.ClientName);
+            Assert.AreEqual(tradeId, result.Id);
+            Assert.AreEqual(askCurrency.Code, result.AskCurrencyCode);
+            Assert.AreEqual(bidCurrency.Code, result.BidCurrencyCode);
+            Assert.AreEqual(soldAmount, result.SoldAmount);
+            Assert.AreEqual(boughtByClientAmount, result.BoughtAmount);
+            Assert.AreEqual(boughtByClientAmount / soldAmount, result.ClientRate);
+            Assert.AreEqual(boughtByUsAmount / soldAmount, result.BrokerRate);
+            Assert.AreEqual(time, result.Time);
+            Assert.AreEqual(clientName, result.ClientName);
         }
 
         [TestMethod]
@@ -156,16 +153,10 @@ namespace TradesApi.BusinessLogic.Tests
             var tradesService = CreateTradesService(tradesRepository: tradesRepository);
 
             // Act.
-            var parameters = new GetTradesListParameters
-            {
-                Skip = 1,
-                Take = 2
-            };
-            var result = tradesService.GetTradesListAsync(parameters).Result;
+            var result = tradesService.GetTradesListAsync(1, 2).Result;
 
             // Assert.
-            Assert.IsTrue(result.Successful);
-            Assert.AreEqual(2, result.Trades.Count);
+            Assert.AreEqual(2, result.Count);
         }
 
         [TestMethod]
@@ -196,22 +187,18 @@ namespace TradesApi.BusinessLogic.Tests
             var tradesService = CreateTradesService(
                 tradesRepository: tradesRepository,
                 currencyRatesProvider: currencyRatesProvider);
+            var startDate = new DateTime(2020, 1, 2);
+            var endDate = new DateTime(2020, 1, 5);
 
             // Act.
-            var parameters = new GetProfitInGbpReportParameters
-            {
-                StartDate = new DateTime(2020, 1, 2),
-                EndDate = new DateTime(2020, 1, 5)
-            };
-            var result = tradesService.GetProfitInGbpAsync(parameters).Result;
+            var result = tradesService.GetProfitInGbpAsync(startDate, endDate).Result;
 
             // Assert.
-            Assert.IsTrue(result.Successful);
-            Assert.AreEqual(4, result.ProfitData.Count);
-            Assert.AreEqual(new DateTime(2020, 1, 2), result.ProfitData[0].Date);
-            Assert.AreEqual(0.6m, result.ProfitData[0].Sum);
-            Assert.AreEqual(new DateTime(2020, 1, 5), result.ProfitData[3].Date);
-            Assert.AreEqual(0m, result.ProfitData[3].Sum);
+            Assert.AreEqual(4, result.Count);
+            Assert.AreEqual(new DateTime(2020, 1, 2), result[0].Date);
+            Assert.AreEqual(0.6m, result[0].Sum);
+            Assert.AreEqual(new DateTime(2020, 1, 5), result[3].Date);
+            Assert.AreEqual(0m, result[3].Sum);
         }
     }
 }

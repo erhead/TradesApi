@@ -1,16 +1,18 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using TradesApi.BusinessLogic.DataTransferObjects;
 
 namespace TradesApi.BusinessLogic
 {
     public interface ITradesService
     {
-        Task<AddTradeResult> AddTradeAsync(AddTradeParameters parameters);
+        Task AddTradeAsync(AddTradeParameters parameters);
 
-        Task<GetTradeResult> GetTradeAsync(GetTradeParameters parameters);
+        Task<TradeDto> GetTradeAsync(int id);
 
-        Task<GetTradesListResult> GetTradesListAsync(GetTradesListParameters parameters);
+        Task<List<TradeDto>> GetTradesListAsync(int skip, int take);
 
-        Task<GetProfitInGbpReportResult> GetProfitInGbpAsync(GetProfitInGbpReportParameters parameters);
+        Task<List<DayProfitInGbpInfo>> GetProfitInGbpAsync(DateTime startDate, DateTime endDate);
     }
 }
