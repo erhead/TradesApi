@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TradesApi.BusinessLogic;
@@ -24,6 +25,10 @@ namespace TradesApi.Web.Controllers
 
         [HttpGet]
         [Route("{id}")]
+        [SwaggerOperation("Get a trade by ID", "Get a specific trade instance by ID")]
+        [SwaggerResponse(StatusCodes.Status200OK, "OK", typeof(TradeViewModel))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Not found", typeof(ErrorViewModel))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error", typeof(ErrorViewModel))]
         public async Task<ActionResult> Get(int id)
         {
             try
@@ -36,11 +41,6 @@ namespace TradesApi.Web.Controllers
                 Response.StatusCode = StatusCodes.Status404NotFound;
                 return new JsonResult(new ErrorViewModel { Message = e.Message });
             }
-            catch (IncorrectParametersException e)
-            {
-                Response.StatusCode = StatusCodes.Status400BadRequest;
-                return new JsonResult(new ErrorViewModel { Message = e.Message });
-            }
             catch (Exception e)
             {
                 Response.StatusCode = 500;
@@ -49,7 +49,11 @@ namespace TradesApi.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(AddTradeParametersViewModel parameters)
+        [SwaggerOperation("Add a trade", "Add a trade by specified parameters")]
+        [SwaggerResponse(StatusCodes.Status200OK, "OK")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Not found", typeof(ErrorViewModel))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error", typeof(ErrorViewModel))]
+        public async Task<ActionResult> Post([SwaggerRequestBody("Creation parameters")] AddTradeParametersViewModel parameters)
         {
             try
             {
@@ -76,12 +80,18 @@ namespace TradesApi.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetList(int skip = 0, int take = 0)
+        [SwaggerOperation("Get multiple trades", "Get trades using skip and take parameters")]
+        [SwaggerResponse(StatusCodes.Status200OK, "OK", typeof(List<TradeViewModel>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad request", typeof(ErrorViewModel))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error", typeof(ErrorViewModel))]
+        public async Task<ActionResult> GetList(
+            [SwaggerParameter("How many leading trades to skip (no value to cancel skipping)")] int skip = 0,
+            [SwaggerParameter("How many trades to take (no value to get all trades)")] int take = 0)
         {
             try
             {
                 var result = await _tradesService.GetTradesListAsync(skip, take);
-                return new JsonResult(result);
+                return new JsonResult(result.Select(x => new TradeViewModel(x)));
             }
             catch (IncorrectParametersException e)
             {
@@ -97,7 +107,13 @@ namespace TradesApi.Web.Controllers
 
         [HttpGet]
         [Route("GbpProfitReport")]
-        public async Task<ActionResult> GetProfitInGpbReport(DateTime startDate, DateTime endDate)
+        [SwaggerOperation("Get a GBP profit report", "Get a report containing records for every day from " +
+            "the specified range. Each record contains a per-day profit in GBP")]
+        [SwaggerResponse(StatusCodes.Status200OK, "OK", typeof(List<ProfitInGbpReportViewModel>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error", typeof(ErrorViewModel))]
+        public async Task<ActionResult> GetProfitInGpbReport(
+            [SwaggerParameter("An initial range date ('YYYY-MM-DD')")] DateTime startDate,
+            [SwaggerParameter("A final range date ('YYYY-MM-DD')")] DateTime endDate)
         {
             try
             {

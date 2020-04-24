@@ -28,6 +28,7 @@ namespace TradesApi.Web
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
+                c.EnableAnnotations();
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Trades API", Version = "v1" });
             });
 
