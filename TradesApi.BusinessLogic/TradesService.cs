@@ -115,7 +115,9 @@ namespace TradesApi.BusinessLogic
                 }
 
                 var rate = await _currencyRatesProvider.GetRateAsync(trade.AskCurrency.Code, GbpCode, date);
-                profits[date] = profits[date] + (trade.BoughtByUsAmount - trade.BoughtByClientAmount) * rate;
+                profits[date] = decimal.Round(
+                    profits[date] + (trade.BoughtByUsAmount - trade.BoughtByClientAmount) * rate,
+                    2);
             }
             return profits
                     .Select(x => new DayProfitInGbpInfo { Date = x.Key, Sum = x.Value })

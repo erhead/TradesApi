@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using System.Net.Http;
 using TradesApi.BusinessLogic;
 using TradesApi.Data;
+using TradesApi.Data.EntityFramework;
 using TradesApi.Data.InMemory;
 using TradesApi.Data.Model;
 using TradesApi.OpenExchangeRates;
@@ -33,13 +35,12 @@ namespace TradesApi.Web
             });
 
             services.AddHttpClient();
-            services.AddSingleton<IRepository<Currency>>(sp =>
-            {
-                var factory = sp.GetRequiredService<IHttpClientFactory>();
-                return new OxrCurrencyRepository(factory.CreateClient());
-            });
-            services.AddSingleton<IRepository<Trade>>(new TradesInMemoryRepository());
-            services.AddSingleton<IConfigurationService>(new StaticConfigurationService());
+
+            services.AddDbContext<TradesApiContext>(options => options.UseSqlite("Data Source=../TradesApi.db"));
+
+            services.AddScoped<IRepository<Currency>, CurrencyEfRepository>();
+            services.AddScoped<IRepository<Trade>, TradesEfRepository>();
+            services.AddSingleton<IConfigurationService>(new StaticConfigurationService { TotalEnrichmentPercent = 50m });
             services.AddScoped<ICurrencyRatesProvider>(sp =>
             {
                 var factory = sp.GetRequiredService<IHttpClientFactory>();

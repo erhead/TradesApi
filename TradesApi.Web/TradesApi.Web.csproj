@@ -5,12 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="microsoft.entityframeworkcore.sqlite" Version="3.1.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.3.3" />
     <PackageReference Include="swashbuckle.aspnetcore.annotations" Version="5.3.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TradesApi.BusinessLogic\TradesApi.BusinessLogic.csproj" />
+    <ProjectReference Include="..\TradesApi.Data.EntityFramework\TradesApi.Data.EntityFramework.csproj" />
     <ProjectReference Include="..\TradesApi.Data.InMemory\TradesApi.Data.InMemory.csproj" />
     <ProjectReference Include="..\TradesApi.Data\TradesApi.Data.csproj" />
     <ProjectReference Include="..\TradesApi.OpenExchangeRates\TradesApi.OpenExchangeRates.csproj" />
