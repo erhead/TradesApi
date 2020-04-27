@@ -36,15 +36,21 @@ namespace TradesApi.Web
 
             services.AddHttpClient();
 
-            services.AddDbContext<TradesApiContext>(options => options.UseSqlite("Data Source=../TradesApi.db"));
+            services.AddDbContext<TradesApiContext>(options => options.UseSqlite(Configuration["DbConnectionString"]));
 
             services.AddScoped<IRepository<Currency>, CurrencyEfRepository>();
             services.AddScoped<IRepository<Trade>, TradesEfRepository>();
-            services.AddSingleton<IConfigurationService>(new StaticConfigurationService { TotalEnrichmentPercent = 50m });
+            services.AddSingleton<IConfigurationService>(new StaticConfigurationService
+            {
+                TotalEnrichmentPercent = decimal.Parse(Configuration["TotalEnrichmentPercent"])
+            });
             services.AddScoped<ICurrencyRatesProvider>(sp =>
             {
                 var factory = sp.GetRequiredService<IHttpClientFactory>();
-                return new OxrCurrencyRatesProvider(factory.CreateClient(), "aee797343e7942fba89a93943bc91188");
+                return new OxrCurrencyRatesProvider(factory.CreateClient(), Configuration["OxrAppId"])
+                {
+                    OxrApiRoot = Configuration["OxrApiRootUrl"]
+                };
             });
             services.AddScoped<ITradesService, TradesService>();
         }
